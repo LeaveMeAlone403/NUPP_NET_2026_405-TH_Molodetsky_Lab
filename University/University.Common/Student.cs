@@ -4,14 +4,8 @@ public class Student : Person
 {
   // Властивість
   public string Group { get; set; } = string.Empty;
-
-  // Властивість
   public int LastGrade { get; set; }
-
-  // Властивість
   public double AverageScore { get; set; }
-
-  // Конструктор
   public Student() : base() { }
 
   // Конструктор з параметрами

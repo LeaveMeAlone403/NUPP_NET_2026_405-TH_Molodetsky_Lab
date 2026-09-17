@@ -5,19 +5,12 @@ public class Classroom
   // Властивість
   public Guid Id { get; set; } = Guid.NewGuid();
 
-  // Властивість
   public int RoomNumber { get; set; }
-
-  // Властивість
   public int Capacity { get; set; }
-
-  // Властивість
   public bool HasProjector { get; set; }
 
-  // Конструктор
   public Classroom() { }
 
-  // Конструктор з параметрами
   public Classroom(int roomNumber, int capacity, bool hasProjector)
   {
     RoomNumber = roomNumber;
@@ -25,7 +18,6 @@ public class Classroom
     HasProjector = hasProjector;
   }
 
-  // Метод
   public string GetSummary()
   {
     string projectorStr = HasProjector ? "Є проектор" : "Без проектора";

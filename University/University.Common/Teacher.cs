@@ -4,11 +4,7 @@ public class Teacher : Person
 {
   // Властивість
   public string Subject { get; set; } = string.Empty;
-
-  // Властивість
   public decimal Salary { get; set; }
-
-  // Властивість
   public int AcademicExperienceYears { get; set; }
 
   // Конструктор
