@@ -11,7 +11,7 @@ Console.WriteLine($"Створено об'єктів Person до запуску:
 // 2. Створення об'єктів
 var student1 = new Student("Ярослав", 19, "405-ТН", 85, 91.5);
 var student2 = new Student("Олександр", 20, "405-ТН", 78, 82.0);
-var teacher = new Teacher("Іван Петрович", 45, "C# та .NET", 25000m, 15);
+var teacher = new Teacher("Іван Петрович", 45, "Вища математика", 25000m, 15);
 
 // Підписка на подію
 student1.OnAgeChanged += (name, oldAge, newAge) =>
