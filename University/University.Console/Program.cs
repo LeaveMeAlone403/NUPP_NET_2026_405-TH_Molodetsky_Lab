@@ -1,70 +1,89 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using University.Common;
 
-Console.OutputEncoding = System.Text.Encoding.UTF8;
-
-Console.WriteLine("=== ЛАБОРАТОРНА РОБОТА №1: University ===\n");
-
-// 1. Демонстрація статичного методу і лічильника
-Console.WriteLine($"Створено об'єктів Person до запуску: {Person.GetTotalCount()}");
-
-// 2. Створення об'єктів
-var student1 = new Student("Ярослав", 19, "405-ТН", 85, 91.5);
-var student2 = new Student("Олександр", 20, "405-ТН", 78, 82.0);
-var teacher = new Teacher("Іван Петрович", 45, "Вища математика", 25000m, 15);
-
-// Підписка на подію
-student1.OnAgeChanged += (name, oldAge, newAge) =>
+class Program
 {
-  Console.WriteLine($"[ПОДІЯ] Вік {name} змінився: з {oldAge} до {newAge} років");
-};
+  static async Task Main(string[] args)
+  {
+    Console.OutputEncoding = System.Text.Encoding.UTF8;
+    string filePath = "students_async_data.json";
+    var service = new AsyncCrudService<Student>(filePath);
 
-Console.WriteLine($"Створено об'єктів Person після запуску: {Person.GetTotalCount()}\n");
+    int totalItems = 2000; // Більше 1000 згідно з вимогою
+    Console.WriteLine($"=== ЛАБОРАТОРНА РОБОТА №2 ===");
+    Console.WriteLine($"[INFO] Паралельна генерація та додавання {totalItems} студентів через Parallel.For...\n");
 
-// 3. Ініціалізація CRUD Сервісу
-var personService = new InMemoryCrudService<Person>();
+    var stopwatch = Stopwatch.StartNew();
 
-Console.WriteLine("--- 1. Додавання елементів (Create) ---");
-personService.Create(student1);
-personService.Create(student2);
-personService.Create(teacher);
+    // 1. Паралельне створення об'єктів за допомогою Parallel.For та потокобезпечного сервісу
+    Parallel.For(0, totalItems, i =>
+    {
+      var student = Student.CreateNew();
+      service.CreateAsync(student).GetAwaiter().GetResult();
+    });
 
-foreach (var item in personService.ReadAll())
-{
-  Console.WriteLine(item.GetInfo());
-}
+    stopwatch.Stop();
+    Console.WriteLine($"[INFO] Успішно згенеровано та додано за {stopwatch.ElapsedMilliseconds} мс.");
 
-Console.WriteLine("\n--- 2. Демонстрація події та методу розширення (Update + Extension) ---");
-// Зміна віку (триггерне подію OnAgeChanged)
-student1.Age = 20;
+    // 2. Отримання всіх елементів для аналізу через LINQ
+    var allStudents = (await service.ReadAllAsync()).ToList();
 
-// Метод розширення для бонусної оцінки
-student1.AddBonusPoints(10);
-personService.Update(student1);
+    if (allStudents.Any())
+    {
+      Console.WriteLine("\n=== АНАЛІЗ ДАНИХ ЗА ДОПОМОГОЮ LINQ ===");
 
-Console.WriteLine($"Оновлена інформація про студента: {student1.GetInfo()}");
+      // Знаходження мінімального, максимального та середнього для числових властивостей
+      int minAge = allStudents.Min(s => s.Age);
+      int maxAge = allStudents.Max(s => s.Age);
+      double avgAge = allStudents.Average(s => s.Age);
 
-Console.WriteLine("\n--- 3. Читання за Id (Read) ---");
-var foundPerson = personService.Read(teacher.Id);
-Console.WriteLine($"Знайдено: {foundPerson?.GetInfo()}");
+      int minGrade = allStudents.Min(s => s.LastGrade);
+      int maxGrade = allStudents.Max(s => s.LastGrade);
+      double avgGrade = allStudents.Average(s => s.LastGrade);
 
-Console.WriteLine("\n--- 4. Видалення (Remove) ---");
-personService.Remove(student2);
-Console.WriteLine("Після видалення другого студента:");
-foreach (var item in personService.ReadAll())
-{
-  Console.WriteLine(item.GetInfo());
-}
+      double avgScore = allStudents.Average(s => s.AverageScore);
 
-Console.WriteLine("\n--- 5. Додаткове завдання (Save & Load JSON) ---");
-string filePath = "people.json";
-personService.Save(filePath);
-Console.WriteLine($"Дані успішно збережено у файл: {Path.GetFullPath(filePath)}");
+      Console.WriteLine($"Вік:      Мін = {minAge}, Макс = {maxAge}, Середній = {avgAge:F1} років");
+      Console.WriteLine($"Оцінки:   Мін = {minGrade}, Макс = {maxGrade}, Середня = {avgGrade:F1}");
+      Console.WriteLine($"Сер. бал: Загальний середній бал по потоку = {avgScore:F2}");
+    }
 
-var newService = new InMemoryCrudService<Person>();
-newService.Load(filePath);
-Console.WriteLine("Дані успішно завантажено в новий сервіс з файлу:");
-foreach (var item in newService.ReadAll())
-{
-  Console.WriteLine(item.GetInfo());
+    // 3. Демонстрація пагінації
+    Console.WriteLine("\n=== ДЕМОНСТРАЦІЯ ПАГІНАЦІЇ (Сторінка 1, 5 елементів) ===");
+    var page1 = await service.ReadAllAsync(1, 5);
+    foreach (var s in page1)
+    {
+      Console.WriteLine(s.GetInfo());
+    }
+
+    // 4. Асинхронне збереження у файл
+    Console.WriteLine("\n[INFO] Збереження колекції у файл асинхронічно...");
+    bool saved = await service.SaveAsync();
+    Console.WriteLine(saved ? "[INFO] Файл успішно збережено!" : "[ERROR] Помилка збереження файлу.");
+
+    // 5. Демонстрація примітивів синхронізації (lock, AutoResetEvent, Semaphore)
+    Console.WriteLine("\n=== ДЕМОНСТРАЦІЯ ПРИМІТІВІВ СИНХРОНІЗАЦІЇ ===");
+
+    // Приклад lock
+    object syncLock = new object();
+    Parallel.Invoke(
+        () => { lock (syncLock) { Console.WriteLine("[Lock] Потік 1 увійшов у критичну секцію."); } },
+        () => { lock (syncLock) { Console.WriteLine("[Lock] Потік 2 увійшов у критичну секцію."); } }
+    );
+
+    // Приклад AutoResetEvent
+    AutoResetEvent autoEvent = new AutoResetEvent(false);
+    Task.Run(() =>
+    {
+      Thread.Sleep(100);
+      Console.WriteLine("[AutoResetEvent] Сигнал з фонового потоку надіслано.");
+      autoEvent.Set();
+    });
+    autoEvent.WaitOne(); // Очікування сигналу
+    Console.WriteLine("[AutoResetEvent] Головний потік продовжив виконання після сигналу.");
+  }
 }
