@@ -1,24 +1,17 @@
-﻿using System;
-using System.Text.Json.Serialization;
-
-namespace University.Common;
+﻿namespace University.Common;
 
 // Делегат
 public delegate void AgeChangedHandler(string personName, int oldAge, int newAge);
 
-// Налаштування поліморфної десеріалізації для абстрактного класу
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(Student), typeDiscriminator: "student")]
-[JsonDerivedType(typeof(Teacher), typeDiscriminator: "teacher")]
 public abstract class Person
 {
   // Властивість
   public Guid Id { get; set; } = Guid.NewGuid();
+
+  // Властивість
   public string Name { get; set; } = string.Empty;
 
-  // Змінна
   private int _age;
-
   // Властивість
   public int Age
   {
@@ -38,7 +31,7 @@ public abstract class Person
   // Статичне поле
   public static int TotalPeopleCreated = 0;
 
-  // Подія (ігнорується серіалізатором за замовчуванням)
+  // Подія
   public event AgeChangedHandler? OnAgeChanged;
 
   // Статичний конструктор
@@ -47,7 +40,7 @@ public abstract class Person
     TotalPeopleCreated = 0;
   }
 
-  // Конструктор за замовчуванням (необхідний для JSON)
+  // Конструктор
   public Person()
   {
     TotalPeopleCreated++;
