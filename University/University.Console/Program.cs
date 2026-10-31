@@ -1,89 +1,78 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 using University.Common;
+using University.Infrastructure.Data;
+using University.Infrastructure.Models;
+using University.Infrastructure.Repositories;
+using University.Infrastructure.Services;
+using University.Nosql;
 
 class Program
 {
   static async Task Main(string[] args)
   {
     Console.OutputEncoding = System.Text.Encoding.UTF8;
-    string filePath = "students_async_data.json";
-    var service = new AsyncCrudService<Student>(filePath);
+    Console.WriteLine("=== Ініціалізація університетської системи (.NET 8) ===\n");
 
-    int totalItems = 2000; 
-    Console.WriteLine($"=== ЛАБОРАТОРНА РОБОТА №2 ===");
-    Console.WriteLine($"[INFO] Паралельна генерація та додавання {totalItems} студентів через Parallel.For...\n");
+    // ==========================================
+    // 1. РОБОТА З РЕЛЯЦІЙНОЮ БАЗОЮ (SQLite / EF Core)
+    // ==========================================
+    var optionsBuilder = new DbContextOptionsBuilder<UniversityContext>();
+    optionsBuilder.UseSqlite("Data Source=university.db");
 
-    var stopwatch = Stopwatch.StartNew();
-
-    // 1. Паралельне створення об'єктів за допомогою Parallel.For та потокобезпечного сервісу
-    Parallel.For(0, totalItems, i =>
+    using (var context = new UniversityContext(optionsBuilder.Options))
     {
-      var student = Student.CreateNew();
-      service.CreateAsync(student).GetAwaiter().GetResult();
-    });
+      await context.Database.MigrateAsync();
+      Console.WriteLine("[SQLite] База даних успішно створена та оновлена міграціями.");
 
-    stopwatch.Stop();
-    Console.WriteLine($"[INFO] Успішно згенеровано та додано за {stopwatch.ElapsedMilliseconds} мс.");
+      IRepository<StudentModel> sqliteRepository = new Repository<StudentModel>(context);
+      ICrudServiceAsync<StudentModel> sqliteService = new CrudServiceAsync<StudentModel>(sqliteRepository);
 
-    // 2. Отримання всіх елементів для аналізу через LINQ
-    var allStudents = (await service.ReadAllAsync()).ToList();
+      // Наповнюємо базу даних студентами за допомогою StudentSeeder (без дублікатів)
+      await StudentSeeder.SeedAsync(sqliteService);
 
-    if (allStudents.Any())
-    {
-      Console.WriteLine("\n=== АНАЛІЗ ДАНИХ ЗА ДОПОМОГОЮ LINQ ===");
-
-      // Знаходження мінімального, максимального та середнього для числових властивостей
-      int minAge = allStudents.Min(s => s.Age);
-      int maxAge = allStudents.Max(s => s.Age);
-      double avgAge = allStudents.Average(s => s.Age);
-
-      int minGrade = allStudents.Min(s => s.LastGrade);
-      int maxGrade = allStudents.Max(s => s.LastGrade);
-      double avgGrade = allStudents.Average(s => s.LastGrade);
-
-      double avgScore = allStudents.Average(s => s.AverageScore);
-
-      Console.WriteLine($"Вік:      Мін = {minAge}, Макс = {maxAge}, Середній = {avgAge:F1} років");
-      Console.WriteLine($"Оцінки:   Мін = {minGrade}, Макс = {maxGrade}, Середня = {avgGrade:F1}");
-      Console.WriteLine($"Сер. бал: Загальний середній бал по потоку = {avgScore:F2}");
+      Console.WriteLine("\n--- Повний список студентів у SQLite ---");
+      var students = await sqliteService.ReadAllAsync();
+      foreach (var student in students)
+      {
+        Console.WriteLine($"ID: {student.Id} | Група: {student.Group} | Ім'я: {student.Name} | Бал: {student.AverageScore}");
+      }
     }
 
-    // 3. Демонстрація пагінації
-    Console.WriteLine("\n=== ДЕМОНСТРАЦІЯ ПАГІНАЦІЇ (Сторінка 1, 5 елементів) ===");
-    var page1 = await service.ReadAllAsync(1, 5);
-    foreach (var s in page1)
+    // ==========================================
+    // 2. ДОДАТКОВЕ ЗАВДАННЯ: РОБОТА З MONGODB
+    // ==========================================
+    Console.WriteLine("\n=== Ініціалізація нереляційної бази (MongoDB) ===");
+    try
     {
-      Console.WriteLine(s.GetInfo());
+      // Виправляємо серіалізацію Guid для MongoDB драйвера 3.x
+      MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
+          new MongoDB.Bson.Serialization.Serializers.GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard)
+      );
+
+      IRepository<StudentModel> mongoRepository = new MongoRepository<StudentModel>(
+          "mongodb://localhost:27017",
+          "UniversityNoSqlDb",
+          "Students"
+      );
+
+      ICrudServiceAsync<StudentModel> mongoService = new CrudServiceAsync<StudentModel>(mongoRepository);
+
+      // Використовуємо той самий StudentSeeder для MongoDB
+      await StudentSeeder.SeedAsync(mongoService);
+
+      Console.WriteLine("\n--- Повний список студентів з MongoDB ---");
+      var mongoStudents = await mongoService.ReadAllAsync();
+      foreach (var student in mongoStudents)
+      {
+        Console.WriteLine($"-> ID: {student.Id} | Група: {student.Group} | Ім'я: {student.Name} | Бал: {student.AverageScore}");
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"[MongoDB] Помилка (перевір, чи запущена служба MongoDB у Docker): {ex.Message}");
     }
 
-    // 4. Асинхронне збереження у файл
-    Console.WriteLine("\n[INFO] Збереження колекції у файл асинхронічно...");
-    bool saved = await service.SaveAsync();
-    Console.WriteLine(saved ? "[INFO] Файл успішно збережено!" : "[ERROR] Помилка збереження файлу.");
-
-    // 5. Демонстрація примітивів синхронізації (lock, AutoResetEvent, Semaphore)
-    Console.WriteLine("\n=== ДЕМОНСТРАЦІЯ ПРИМІТІВІВ СИНХРОНІЗАЦІЇ ===");
-
-    // Приклад lock
-    object syncLock = new object();
-    Parallel.Invoke(
-        () => { lock (syncLock) { Console.WriteLine("[Lock] Потік 1 увійшов у критичну секцію."); } },
-        () => { lock (syncLock) { Console.WriteLine("[Lock] Потік 2 увійшов у критичну секцію."); } }
-    );
-
-    // Приклад AutoResetEvent
-    AutoResetEvent autoEvent = new AutoResetEvent(false);
-    Task.Run(() =>
-    {
-      Thread.Sleep(100);
-      Console.WriteLine("[AutoResetEvent] Сигнал з фонового потоку надіслано.");
-      autoEvent.Set();
-    });
-    autoEvent.WaitOne(); // Очікування сигналу
-    Console.WriteLine("[AutoResetEvent] Головний потік продовжив виконання після сигналу.");
+    Console.WriteLine("\nРоботу програми завершено. Натисніть будь-яку клавішу для виходу.");
+    Console.ReadKey();
   }
 }
