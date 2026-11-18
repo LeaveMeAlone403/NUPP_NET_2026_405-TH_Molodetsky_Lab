@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197
+# Visual Studio Version 18
+VisualStudioVersion = 18.11.12328.437 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "University.Common", "University.Common\University.Common.csproj", "{7948CAC6-80A9-4771-9F81-147A01CFB06C}"
 EndProject
@@ -10,6 +10,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "University.Infrastructure", "University.Infrastructure\University.Infrastructure.csproj", "{2362F8C2-D30D-4B43-97F1-3345FE05E71B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "University.Nosql", "University.Nosql\University.Nosql.csproj", "{F4A6E914-E267-4771-9107-2E0AAD626637}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "University.REST", "University.REST\University.REST.csproj", "{062895C3-FA9F-4D1B-B180-9B5FCB40F7EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "University.MVC", "University.MVC\University.MVC.csproj", "{F9C218EB-C1DC-403C-BDA5-4E767F51C3A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{F4A6E914-E267-4771-9107-2E0AAD626637}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4A6E914-E267-4771-9107-2E0AAD626637}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4A6E914-E267-4771-9107-2E0AAD626637}.Release|Any CPU.Build.0 = Release|Any CPU
+		{062895C3-FA9F-4D1B-B180-9B5FCB40F7EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{062895C3-FA9F-4D1B-B180-9B5FCB40F7EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{062895C3-FA9F-4D1B-B180-9B5FCB40F7EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{062895C3-FA9F-4D1B-B180-9B5FCB40F7EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9C218EB-C1DC-403C-BDA5-4E767F51C3A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9C218EB-C1DC-403C-BDA5-4E767F51C3A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9C218EB-C1DC-403C-BDA5-4E767F51C3A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9C218EB-C1DC-403C-BDA5-4E767F51C3A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

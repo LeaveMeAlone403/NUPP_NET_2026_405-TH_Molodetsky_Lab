@@ -1,0 +1,56 @@
+﻿@model University.MVC.Models.ViewModels.CourseViewModel
+
+@{
+    ViewData["Title"] = "Edit Course";
+}
+
+<h1>Edit Course</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Credits" class="control-label"></label>
+                <input asp-for="Credits" class="form-control" />
+                <span asp-validation-for="Credits" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="TeacherId" class="control-label">Teacher ID</label>
+                <input asp-for="TeacherId" class="form-control" />
+                <span asp-validation-for="TeacherId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $.validator.methods.number = function (value, element) {
+            return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
+        };
+        $.validator.methods.range = function (value, element, param) {
+            var normalizedValue = parseFloat(value.replace(',', '.'));
+            return this.optional(element) || (normalizedValue >= param[0] && normalizedValue <= param[1]);
+        };
+    </script>
+}

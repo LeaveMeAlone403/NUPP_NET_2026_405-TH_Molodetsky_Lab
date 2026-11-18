@@ -1,0 +1,66 @@
+﻿@model University.MVC.Models.ViewModels.TeacherViewModel
+
+@{
+    ViewData["Title"] = "Edit Teacher";
+}
+
+<h1>Edit Teacher</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Age" class="control-label"></label>
+                <input asp-for="Age" class="form-control" />
+                <span asp-validation-for="Age" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Salary" class="control-label"></label>
+                <input asp-for="Salary" class="form-control" />
+                <span asp-validation-for="Salary" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="AcademicExperienceYears" class="control-label">Experience (Years)</label>
+                <input asp-for="AcademicExperienceYears" class="form-control" />
+                <span asp-validation-for="AcademicExperienceYears" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Дозволяємо кому у числових полях
+        $.validator.methods.number = function (value, element) {
+            return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
+        };
+
+        // Перевизначаємо перевірку діапазону (Range), щоб вона замінювала кому на крапку для розрахунку
+        $.validator.methods.range = function (value, element, param) {
+            var normalizedValue = parseFloat(value.replace(',', '.'));
+            return this.optional(element) || (normalizedValue >= param[0] && normalizedValue <= param[1]);
+        };
+    </script>
+}

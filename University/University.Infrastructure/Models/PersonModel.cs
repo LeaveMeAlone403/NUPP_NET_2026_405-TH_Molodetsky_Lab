@@ -14,6 +14,6 @@ public abstract class PersonModel
   public int Age { get; set; }
 
   // Навігаційні властивості
-  public StudentModel? Student { get; set; }
-  public TeacherModel? Teacher { get; set; }
+  //public StudentModel? Student { get; set; }
+  //public TeacherModel? Teacher { get; set; }
 }

@@ -4,14 +4,14 @@ namespace University.Infrastructure.Models;
 
 public class EnrollmentModel
 {
-  [Key]
-  public Guid Id { get; set; } = Guid.NewGuid();
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-  public Guid StudentId { get; set; }
-  public StudentModel Student { get; set; } = null!;
+    public Guid StudentId { get; set; }
+    public StudentModel Student { get; set; } = null!;
 
-  public Guid CourseId { get; set; }
-  public CourseModel Course { get; set; } = null!;
+    public Guid CourseId { get; set; }
+    public CourseModel Course { get; set; } = null!;
 
-  public int? Grade { get; set; }
+    public int? Grade { get; set; } // Nullable, бо студент може бути записаний, але ще не мати оцінки
 }

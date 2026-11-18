@@ -55,12 +55,17 @@ namespace University.Infrastructure.Migrations
                     b.Property<int>("Credits")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("TeacherId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TeacherId");
 
                     b.ToTable("Courses");
                 });
@@ -148,11 +153,6 @@ namespace University.Infrastructure.Migrations
                     b.Property<decimal>("Salary")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.ToTable("Teachers", (string)null);
                 });
 
@@ -161,6 +161,16 @@ namespace University.Infrastructure.Migrations
                     b.HasOne("University.Infrastructure.Models.TeacherModel", "Teacher")
                         .WithOne("Classroom")
                         .HasForeignKey("University.Infrastructure.Models.ClassroomModel", "TeacherId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("University.Infrastructure.Models.CourseModel", b =>
+                {
+                    b.HasOne("University.Infrastructure.Models.TeacherModel", "Teacher")
+                        .WithMany("Courses")
+                        .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Teacher");
@@ -231,6 +241,8 @@ namespace University.Infrastructure.Migrations
             modelBuilder.Entity("University.Infrastructure.Models.TeacherModel", b =>
                 {
                     b.Navigation("Classroom");
+
+                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }
